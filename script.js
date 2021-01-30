@@ -102,6 +102,13 @@ var exploreInDirection = async function(currentLocation, direction, grid) {
 };
 async function startSolving() {
     let finalPath = await findShortestPath([startX, startY], grid);
+    if (finalPath == false) {
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, canvaswidth, canvasheight);
+        ctx.fillStyle = "black";
+        ctx.font = "30px sans-serif";
+        ctx.fillText("The destination cannot be reached.", 20, canvasheight / 2);
+    }
     pathCoordinates = [
         [startX, startY]
     ];
@@ -123,29 +130,30 @@ async function startSolving() {
         }
         pathCoordinates.push([presentX, presentY]);
     }
-    console.log(pathCoordinates);
     await drawPath();
 }
 draw();
 async function draw() {
-    ctx.fillStyle = "black";
-    ctx.fillRect(0, 0, canvaswidth, canvasheight);
-    for (let i = 0; i < numCols; i++) {
-        for (let j = 0; j < numRows; j++) {
-            let leftDis = j * blockSize;
-            let topDis = i * blockSize;
-            if (startX == i && startY == j) {
-                ctx.fillStyle = "blue";
-            } else if (endX == i && endY == j) {
-                ctx.fillStyle = "lime";
-            } else if (grid[i][j] == "#") {
-                ctx.fillStyle = "red";
-            } else if (grid[i][j] == "Visited") {
-                ctx.fillStyle = "yellow";
-            } else {
-                ctx.fillStyle = "cyan";
+    if (grid) {
+        ctx.fillStyle = "black";
+        ctx.fillRect(0, 0, canvaswidth, canvasheight);
+        for (let i = 0; i < numCols; i++) {
+            for (let j = 0; j < numRows; j++) {
+                let leftDis = j * blockSize;
+                let topDis = i * blockSize;
+                if (startX == i && startY == j) {
+                    ctx.fillStyle = "blue";
+                } else if (endX == i && endY == j) {
+                    ctx.fillStyle = "lime";
+                } else if (grid[i] && grid[i][j] == "#") {
+                    ctx.fillStyle = "red";
+                } else if (grid[i] && grid[i][j] == "Visited") {
+                    ctx.fillStyle = "yellow";
+                } else {
+                    ctx.fillStyle = "cyan";
+                }
+                ctx.fillRect(leftDis, topDis, blockSize, blockSize);
             }
-            ctx.fillRect(leftDis, topDis, blockSize, blockSize);
         }
     }
 }
@@ -164,4 +172,67 @@ async function drawPath() {
             blockSize
         );
     }
+}
+
+createBoard();
+async function createBoard() {
+    if (blockadeType == 1) {
+        let numberOfBlockades = (numRows * numCols) / 3;
+        for (let i = 0; i < numRows; i++) {
+            grid.push([]);
+            for (let j = 0; j < numCols; j++) {
+                grid[i][j] = ".";
+            }
+        }
+        for (let i = 0; i < numberOfBlockades; i++) {
+            let randomRowIndex = Math.floor(Math.random() * (numRows - 1));
+            let randomColIndex = Math.floor(Math.random() * (numCols - 1));
+            grid[randomRowIndex][randomColIndex] = "#";
+        }
+        startX = Math.floor(Math.random() * (numRows - 1));
+        startY = Math.floor(Math.random() * (numCols - 1));
+        grid[startX][startY] = "s";
+        endX = Math.floor(Math.random() * (numRows - 1));
+        endY = Math.floor(Math.random() * (numCols - 1));
+        grid[endX][endY] = "e";
+    } else if (blockadeType == 2) {
+        let called = 0;
+        for (let i = 0; i < numRows; i++) {
+            let string;
+            if (i % 2 == 0) {
+                string = ".".repeat(numCols);
+            } else {
+                if (called % 2 == 0) {
+                    string = "#".repeat(numCols - 1) + ".";
+                } else {
+                    string = "." + "#".repeat(numCols - 1);
+                }
+                called++;
+            }
+            grid.push(string.split(""));
+        }
+        startX = 0;
+        startY = 0;
+        grid[startX][startY] = "s";
+        let lastRow = grid[grid.length - 1];
+
+        endX = grid.length - 1;
+        endY = lastRow.indexOf(".");
+        grid[endX][endY] = "e";
+    } else if (blockadeType == 3) {
+        for (let i = 0; i < numRows; i++) {
+            grid.push([]);
+            for (let j = 0; j < numCols; j++) {
+                grid[i][j] = ".";
+            }
+        }
+        endX = 0;
+        endY = 0;
+        startX = numRows - 1;
+        startY = numCols - 1;
+        grid[startX][startY] = "s";
+        grid[startX][endY] = "#";
+        grid[endX][endY] = "e";
+    }
+    draw();
 }
