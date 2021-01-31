@@ -17,6 +17,17 @@ let colours = {
     blockade: "rgba(0,0,0,0.5)",
     path: "rgba(150,150,150,0.5)",
 };
+let color_list_html = "";
+Object.keys(colours).forEach((block) => {
+    let nodeString =
+        block == "start" || block == "end" ?
+        "node" :
+        block == "visited" || block == "unvisited" || block == "blockade" ?
+        "nodes" :
+        "";
+    color_list_html += `<li><span style="border:2px solid;display:inline-block;background-color:${colours[block]};width:25px;height:20px; "></span> this color represents the ${block} ${nodeString}</li>`;
+});
+document.getElementById("color-list").innerHTML = color_list_html;
 let canvaswidth = numCols * blockSize;
 let canvasheight = numRows * blockSize;
 let blockadeList = ["random", "zigzag", "customized"];
