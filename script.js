@@ -47,15 +47,19 @@ var findShortestPath = async function(startCoordinates, grid) {
 };
 
 var locationStatus = async function(location, grid) {
-    var gridSize = grid.length;
+    // var gridSize = grid.length;
     var dft = location.distanceFromTop;
     var dfl = location.distanceFromLeft;
 
     if (
+        // location.distanceFromLeft < 0 ||
+        // location.distanceFromLeft >= gridSize ||
+        // location.distanceFromTop < 0 ||
+        // location.distanceFromTop >= gridSize
         location.distanceFromLeft < 0 ||
-        location.distanceFromLeft >= gridSize ||
+        location.distanceFromLeft >= numCols ||
         location.distanceFromTop < 0 ||
-        location.distanceFromTop >= gridSize
+        location.distanceFromTop >= numRows
     ) {
         return "Invalid";
     } else if (grid[dft][dfl] === "e") {
@@ -108,49 +112,50 @@ async function startSolving() {
         ctx.fillStyle = "black";
         ctx.font = "30px sans-serif";
         ctx.fillText("The destination cannot be reached.", 20, canvasheight / 2);
-    }
-    pathCoordinates = [
-        [startX, startY]
-    ];
-    let [presentX, presentY] = [startX, startY];
-    for (let direction of finalPath) {
-        switch (direction) {
-            case "North":
-                presentX--;
-                break;
-            case "East":
-                presentY++;
-                break;
-            case "West":
-                presentY--;
-                break;
-            case "South":
-                presentX++;
-                break;
+    } else {
+        pathCoordinates = [
+            [startX, startY]
+        ];
+        let [presentX, presentY] = [startX, startY];
+        for (let direction of finalPath) {
+            switch (direction) {
+                case "North":
+                    presentX--;
+                    break;
+                case "East":
+                    presentY++;
+                    break;
+                case "West":
+                    presentY--;
+                    break;
+                case "South":
+                    presentX++;
+                    break;
+            }
+            pathCoordinates.push([presentX, presentY]);
         }
-        pathCoordinates.push([presentX, presentY]);
+        await drawPath();
     }
-    await drawPath();
 }
 draw();
 async function draw() {
     if (grid) {
         ctx.fillStyle = "black";
         ctx.fillRect(0, 0, canvaswidth, canvasheight);
-        for (let i = 0; i < numCols; i++) {
-            for (let j = 0; j < numRows; j++) {
-                let leftDis = j * blockSize;
+        for (let i = 0; i < numRows; i++) {
+            for (let j = 0; j < numCols; j++) {
                 let topDis = i * blockSize;
+                let leftDis = j * blockSize;
                 if (startX == i && startY == j) {
-                    ctx.fillStyle = "blue";
+                    ctx.fillStyle = colours["start"];
                 } else if (endX == i && endY == j) {
-                    ctx.fillStyle = "lime";
+                    ctx.fillStyle = colours["end"];
                 } else if (grid[i] && grid[i][j] == "#") {
-                    ctx.fillStyle = "red";
+                    ctx.fillStyle = colours["blockade"];
                 } else if (grid[i] && grid[i][j] == "Visited") {
-                    ctx.fillStyle = "yellow";
+                    ctx.fillStyle = colours["visited"];
                 } else {
-                    ctx.fillStyle = "cyan";
+                    ctx.fillStyle = colours["unvisited"];
                 }
                 ctx.fillRect(leftDis, topDis, blockSize, blockSize);
             }
@@ -162,9 +167,9 @@ function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 async function drawPath() {
-    for (let i = 0; i < pathCoordinates.length; i++) {
+    for (let i = 1; i < pathCoordinates.length - 1; i++) {
         await sleep(drawingSpeed);
-        ctx.fillStyle = "orange";
+        ctx.fillStyle = colours["path"];
         ctx.fillRect(
             pathCoordinates[i][1] * blockSize,
             pathCoordinates[i][0] * blockSize,
